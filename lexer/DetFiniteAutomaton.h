@@ -22,11 +22,13 @@ namespace lexer
         using token_list_t = std::vector<std::pair<std::string, TokenType> >;
         static DFAState root;
         DetFiniteAutomaton() = default;
-        static void dfs(DFAState &state, token_list_t &token_list, size_t depth);
-        static void rec_output(const DFAState &root, size_t depth);
+        static void init_dfs(DFAState &state, token_list_t const &token_list, size_t const &depth);
+        static void rec_output(DFAState const &root, size_t const &depth);
+        static std::pair<TokenType, size_t> check_dfs(DFAState const &state, std::string const &code, size_t const pos);
     public:
         static void init_dfa_states();
-        static void output_dfa_state();
+        static std::pair<TokenType, size_t> check_value(std::string const &code, size_t const &start_pos);
+        static void output_dfa_states();
     };
 }
 

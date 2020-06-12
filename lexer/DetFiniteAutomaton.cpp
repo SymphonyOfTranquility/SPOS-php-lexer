@@ -9,7 +9,8 @@
 namespace lexer
 {
     DetFiniteAutomaton::DFAState DetFiniteAutomaton::root;
-    void DetFiniteAutomaton::dfs(DFAState &state, token_list_t &token_list, size_t depth)
+
+    void DetFiniteAutomaton::init_dfs(DFAState &state, token_list_t const &token_list, size_t const &depth)
     {
         size_t i = 0;
         do
@@ -37,13 +38,33 @@ namespace lexer
                     ++j;
                 }
                 if (!next_list.empty())
-                    dfs(next_state, next_list, depth + 1);
+                    init_dfs(next_state, next_list, depth + 1);
 
                 state.next_state.push_back(std::move(next_state));
                 i = j;
             }
         }
         while (i < token_list.size());
+    }
+
+    void DetFiniteAutomaton::rec_output(DFAState const &root, size_t const &depth)
+    {
+        for (size_t i = 0;i < depth; ++i)
+            std::cout << "  ";
+        std::cout << root.c << " " << TokenValue[static_cast<size_t>(root.type)] << "\n";
+        for (size_t i = 0;i < root.next_state.size(); ++i)
+            rec_output(root.next_state[i], depth+1);
+    }
+
+    std::pair<TokenType, size_t> DetFiniteAutomaton::check_dfs(DFAState const &state, std::string const &code, size_t const pos)
+    {
+        if (code.length() <= pos)
+            return { state.type, pos-1 };
+
+        for (int i = 0;i < state.next_state.size(); ++i)
+            if (state.next_state[i].c == code[pos])
+                return check_dfs(state.next_state[i], code, pos+1);
+        return { state.type, pos - 1};
     }
 
     void DetFiniteAutomaton::init_dfa_states()
@@ -55,21 +76,19 @@ namespace lexer
             dfa_tokens_list.push_back( { TokenValue[i], static_cast<TokenType>(i) } );
         std::sort(dfa_tokens_list.begin(), dfa_tokens_list.end());
 
-        dfs(root, dfa_tokens_list, 0);
+        init_dfs(root, dfa_tokens_list, 0);
         std::cout << dfa_tokens_list.size();
     }
 
-    void DetFiniteAutomaton::rec_output(const DFAState &root, size_t depth)
+
+    std::pair<TokenType, size_t> DetFiniteAutomaton::check_value(std::string const &code, size_t const &start_pos)
     {
-        for (size_t i = 0;i < depth; ++i)
-            std::cout << "  ";
-        std::cout << root.c << " " << TokenValue[static_cast<size_t>(root.type)] << "\n";
-        for (size_t i = 0;i < root.next_state.size(); ++i)
-            rec_output(root.next_state[i], depth+1);
+        return check_dfs(root, code, start_pos);
     }
 
-    void DetFiniteAutomaton::output_dfa_state()
+    void DetFiniteAutomaton::output_dfa_states()
     {
         rec_output(root, 0);
     }
+
 }
