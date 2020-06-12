@@ -3,4 +3,4 @@ project(lexer)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(lexer main.cpp Lexer.cpp Lexer.h TokenTypesList.h Token.h DetFiniteAutomaton.cpp DetFiniteAutomaton.h)
+add_executable(lexer main.cpp Lexer.cpp Lexer.h TokenTypesList.h Token.h DetFiniteAutomaton.cpp DetFiniteAutomaton.h CharChecks.h)

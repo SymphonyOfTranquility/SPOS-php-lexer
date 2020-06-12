@@ -7,7 +7,9 @@
 
 #include <vector>
 #include <memory>
+
 #include "Token.h"
+#include "DetFiniteAutomaton.h"
 
 namespace lexer
 {
@@ -26,14 +28,18 @@ namespace lexer
         std::vector<Token> tokens;
         std::vector<InvalidToken> invalid_tokens;
 
+        void get_dfa_token(CurrentLineState &state);
+
         void get_multiline_comment(CurrentLineState &state);
         void get_one_quote_string(CurrentLineState &state);
-        void handle_multiline_mode(CurrentLineState &current_state);
-        void get_next_token(CurrentLineState &current_state);
+        void handle_multiline_mode(CurrentLineState &state);
+        void handle_number(CurrentLineState &state);
+        void get_next_token(CurrentLineState &state);
 
     public:
-        Lexer() {};
+        Lexer();
         void get_all_tokens(std::string path_to_file);
+        void output();
     };
 }
 

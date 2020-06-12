@@ -13,6 +13,8 @@
 
 namespace lexer
 {
+    const size_t SYMBOL_TABLE_MAX = std::numeric_limits<size_t>::max();
+
     struct Token {
         TokenType type;
         size_t row_pos;
@@ -24,7 +26,7 @@ namespace lexer
             set_invalid();
         }
 
-        Token(TokenType type, size_t row, size_t col, size_t symbol_table_index)
+        Token(TokenType type, size_t row, size_t col, size_t symbol_table_index = SYMBOL_TABLE_MAX)
         {
             this->type = type;
             this->row_pos = row;
@@ -35,7 +37,7 @@ namespace lexer
         void set_invalid()
         {
             type = TokenType::INVALID;
-            row_pos = column_pos = symbol_table_index = std::numeric_limits<size_t>::max();
+            row_pos = column_pos = symbol_table_index = SYMBOL_TABLE_MAX;
         }
     };
 
