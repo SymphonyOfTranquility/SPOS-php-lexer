@@ -16,7 +16,7 @@ namespace lexer
 
     bool is_symbol(char const c)
     {
-        return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
+        return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
     }
 
     bool is_dot(char const c)
@@ -50,5 +50,26 @@ namespace lexer
     {
         return is_punctuation(c) || is_hash_tag_comment(c) || is_whitespace(c) || is_operation(c);
     }
+
+    bool is_dollar(char const c)
+    {
+        return c == '$';
+    }
+
+    bool is_comment(char const c1, char const c2)
+    {
+        return c1 == '/' && (c2 == '/' || c2 == '*');
+    }
+
+    bool is_word(char const c)
+    {
+        return is_symbol(c) || is_number(c);
+    }
+
+    bool is_single_quote_string(char const c)
+    {
+        return c == '\'';
+    }
+
 }
 #endif //LEXER_CHARCHECKS_H

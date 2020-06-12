@@ -16,8 +16,6 @@ namespace lexer
         DollarIdentifierInString,  // ${
 
         // key words
-        OpenTag,                   // <?php
-        CloseTag,                  // ?>
         Include,                   // include
         Namespace,                 // namespace
 
@@ -141,6 +139,9 @@ namespace lexer
         ArrayKey,                   // =>
         VarReference,               // ->
         DoubleColon,                // ::
+        //tags
+        OpenTag,                   // <?php
+        CloseTag,                  // ?>
         // comments
         SingleLineSlashComment,     // //
         SingleLineHashTagComment,   // #
@@ -167,8 +168,6 @@ namespace lexer
         "${}",                     // DollarIdentifierInString
 
         // key words
-        "<?php",                   // OpenTag
-        "?>",                      // CloseTag
         "include",                 // Include
         "namespace",               // Namespace
 
@@ -292,6 +291,9 @@ namespace lexer
         "=>",                       // ArrayKey
         "->",                       // VarReference,
         "::",                       // DoubleColon
+        // tags
+        "<?php",                   // OpenTag
+        "?>",                      // CloseTag
         // comments
         "//",                       // SingleLineSlashComment
         "#",                        // SingleLineHashTagComment
