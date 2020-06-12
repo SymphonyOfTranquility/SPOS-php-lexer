@@ -2,16 +2,18 @@
 // Created by art on 6/11/20.
 //
 
-#ifndef LEXER_TOKENTYPES_H
-#define LEXER_TOKENTYPES_H
+#ifndef LEXER_TOKENTYPESLIST_H
+#define LEXER_TOKENTYPESLIST_H
 
-#include <cstdio>
+#include <stdint.h>
 
 namespace lexer
 {
-    enum class TokenType : size_t
+    enum class TokenType : uint8_t
     {
         Identifier,
+        DollarIdentifier,          // $
+        DollarIdentifierInString,  // ${
 
         // key words
         OpenTag,                   // <?php
@@ -38,7 +40,7 @@ namespace lexer
 
         Echo,                      // echo
         Print,                     // print
-        Variable,                  // starts with dollar
+
         //data types cast
         Int,                       // int
         Integer,                   // integer
@@ -155,9 +157,11 @@ namespace lexer
         TOKEN_NUMBER
     };
 
-    char const *TokenValue[static_cast<size_t>(TokenType::TOKEN_NUMBER)] =
+    std::string const TokenValue[static_cast<uint8_t>(TokenType::TOKEN_NUMBER)] =
     {
         "Identifier",
+        "$",                       // DollarIdentifier
+        "${",                      // DollarIdentifierInString
 
         // key words
         "<?php",                   // OpenTag
@@ -184,7 +188,6 @@ namespace lexer
 
         "echo",                      // Echo
         "print",                     // Print
-        "variable",                  // starts with dollar
         //data types cast
         "int",                       // Int
         "integer",                   // Integer
@@ -300,4 +303,4 @@ namespace lexer
     };
 }
 
-#endif //LEXER_TOKENTYPES_H
+#endif //LEXER_TOKENTYPESLIST_H
