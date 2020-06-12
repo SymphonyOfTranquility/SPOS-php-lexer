@@ -9,7 +9,7 @@
 
 namespace lexer
 {
-    enum class TokenType : uint8_t
+    enum class TokenType : size_t
     {
         Identifier,
         DollarIdentifier,          // $
@@ -59,7 +59,6 @@ namespace lexer
         Public,                    // public
         Protected,                 // protected
         Private,                   // private
-        VarReference,              // ->
         This,                      // $this
         New,                       // new
         Instanceof,                // instanceof
@@ -84,12 +83,16 @@ namespace lexer
         SESSION,                   // $_SESSION
 
         // data types
-        StringValue,
+        StringValueOneQuote,
+        StringValueTwoQuotes,
         IntValue,
         FloatValue,
         True,
         False,
         NULLValue,                  // null
+        AndWord,                    // and
+        OrWord,                     // or
+        XorWord,                    // xor
         // arithmetic tokens
         Add,                        // +
         Sub,                        // -
@@ -115,11 +118,9 @@ namespace lexer
         Increment,                  // ++
         Decrement,                  // --
         // logic
+        Ampersand,                  // &
         AndSymb,                    // &&
-        AndWord,                    // and
         OrSymb,                     // ||
-        OrWord,                     // or
-        XorWord,                    // xor
         Not,                        // !
         BitwiseOr,                  // |
         BitwiseXor,                 // ^
@@ -132,36 +133,38 @@ namespace lexer
         // operations with string
         Concat,                     // .
         ConcatAssignment,           // .=
-        // comments
-        SingleLineSlashComment,     // //
-        SingleLineHashTagComment,   // #
-        MultiLineComment,           // /* */
         // conditional assignment
         QuestMark,                  // ?
         Colon,                      // :
         NullCoalescing,             // ??
         // association in array
         ArrayKey,                   // =>
+        VarReference,               // ->
+        DoubleColon,                // ::
+        // comments
+        SingleLineSlashComment,     // //
+        SingleLineHashTagComment,   // #
+        MultiLineComment,           // /* */
         // punctuation
         Comma,                      // ,
         Semicolon,                  // ;
-        DoubleColon,                // ::
         LParen,                     // (
         RParen,                     // )
         LBracket,                   // [
         RBracket,                   // ]
         LBrace,                     // {
         RBrace,                     // }
-        Ampersand,                  // &
+
+        INVALID,
 
         TOKEN_NUMBER
     };
 
-    std::string const TokenValue[static_cast<uint8_t>(TokenType::TOKEN_NUMBER)] =
+    std::string const TokenValue[static_cast<size_t>(TokenType::TOKEN_NUMBER)] =
     {
         "Identifier",
         "$",                       // DollarIdentifier
-        "${",                      // DollarIdentifierInString
+        "${}",                     // DollarIdentifierInString
 
         // key words
         "<?php",                   // OpenTag
@@ -206,7 +209,6 @@ namespace lexer
         "public",                    // Public
         "protected",                 // Protected
         "private",                   // Private
-        "->",                        // VarReference,
         "$this",                     // This
         "new",                       // New
         "instanceof",                // Instanceof
@@ -231,12 +233,17 @@ namespace lexer
         "$_SESSION",                   // SESSION
 
         // data types
-        "StringValue",
+        "StringValueOneQuote",
+        "StringValueTwoQuotes",
         "IntValue",
         "FloatValue",
         "true",
         "false",
         "null",                     // Null
+        "and",                      // AndWord
+        "or",                       // OrWord
+        "xor",                      // XorWord
+
         // arithmetic tokens
         "+",                        // Add
         "-",                        // Sub
@@ -262,11 +269,9 @@ namespace lexer
         "++",                       // Increment
         "--",                       // Decrement
         // logic
+        "&",                        // Ampersand
         "&&",                       // AndSymb
-        "and",                      // AndWord
         "||",                       // OrSymb
-        "or",                       // OrWord
-        "xor",                      // XorWord
         "!",                        // Not
         "|",                        // BitwiseOr
         "^",                        // BitwiseXor
@@ -279,27 +284,28 @@ namespace lexer
         // operations with string
         ".",                        // Concat
         ".=",                       // ConcatAssignment
-        // comments
-        "//",                       // SingleLineSlashComment
-        "#",                        // SingleLineHashTagComment
-        "/* */",                    // MultiLineComment
         // conditional assignment
         "?",                        // QuestMark
         ":",                        // Colon
         "??",                       // NullCoalescing
-        // association in array
+        // association in array, class
         "=>",                       // ArrayKey
+        "->",                       // VarReference,
+        "::",                       // DoubleColon
+        // comments
+        "//",                       // SingleLineSlashComment
+        "#",                        // SingleLineHashTagComment
+        "/* */",                    // MultiLineComment
         // punctuation
         ",",                        // Comma
         ";",                        // Semicolon
-        "::",                       // DoubleColon
         "(",                        // LParen
         ")",                        // RParen
         "[",                        // LBracket
         "]",                        // RBracket
         "{",                        // LBrace
         "}",                        // RBrace
-        "&"                        // Ampersand
+        "INVALID"
     };
 }
 

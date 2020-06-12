@@ -1,7 +1,9 @@
 #include <iostream>
-#include "TokenTypes.h"
+#include "DetFiniteAutomaton.h"
 int main()
 {
-    std::cout<<"Hello, World!"<<std::endl;
+    std::cout<< "Hello world!" <<std::endl;
+    lexer::DetFiniteAutomaton::init_dfa_states();
+    lexer::DetFiniteAutomaton::output_dfa_state();
     return 0;
 }

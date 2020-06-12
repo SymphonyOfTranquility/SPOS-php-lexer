@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <string>
+#include <limits>
 #include "TokenTypesList.h"
 
 
@@ -14,33 +15,45 @@ namespace lexer
 {
     struct Token {
         TokenType type;
-        size_t rowPos;
-        size_t columnPos;
-        bool isInSymbolTable;
-        size_t symbolTableIndex;
+        size_t row_pos;
+        size_t column_pos;
+        size_t symbol_table_index;
 
-        Token(TokenType type, size_t row, size_t col, bool isInSymbolTable, size_t symbolTableIndex)
+        Token()
+        {
+            set_invalid();
+        }
+
+        Token(TokenType type, size_t row, size_t col, size_t symbol_table_index)
         {
             this->type = type;
-            this->rowPos = row;
-            this->columnPos = col;
-            this->isInSymbolTable = isInSymbolTable;
-            this->symbolTableIndex = symbolTableIndex;
+            this->row_pos = row;
+            this->column_pos = col;
+            this->symbol_table_index = symbol_table_index;
+        }
+
+        void set_invalid()
+        {
+            type = TokenType::INVALID;
+            row_pos = column_pos = symbol_table_index = std::numeric_limits<size_t>::max();
         }
     };
 
     struct InvalidToken
     {
-        std::string errorMessage;
-        std::string errorSymbol;
-        size_t rowPos;
-        size_t columnPos;
+        std::string error_message;
+        std::string error_symbol;
+        size_t row_pos;
+        size_t column_pos;
+
+        InvalidToken() {}
+
         InvalidToken(std::string message, std::string symbol, size_t row, size_t col)
         {
-            this->errorMessage = message;
-            this->errorSymbol = symbol;
-            this->rowPos = row;
-            this->columnPos = col;
+            this->error_message = message;
+            this->error_symbol = symbol;
+            this->row_pos = row;
+            this->column_pos = col;
         }
     };
 }
