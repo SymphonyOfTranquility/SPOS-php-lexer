@@ -71,5 +71,29 @@ namespace lexer
         return c == '\'';
     }
 
+    bool is_double_quote_string(char const c)
+    {
+        return c == '"';
+    }
+
+    bool is_bracket(char const c)
+    {
+        return c == '[' || c == ']';
+    }
+
+    bool is_arrow(char const c1, char const c2)
+    {
+        return c1 == '-' && c2 == '>';
+    }
+
+    bool is_close_brace(char const c)
+    {
+        return c == '}';
+    }
+
+    bool is_tag_after_punctuation(char const c)
+    {
+        return c == ' ' || c == ';';
+    }
 }
 #endif //LEXER_CHARCHECKS_H

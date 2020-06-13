@@ -13,7 +13,8 @@ namespace lexer
     {
         Identifier,
         DollarIdentifier,          // $
-        DollarIdentifierInString,  // ${
+        DollarIdStartString,       // ${
+        DollarIdEndString,         // }
 
         // key words
         Include,                   // include
@@ -57,7 +58,6 @@ namespace lexer
         Public,                    // public
         Protected,                 // protected
         Private,                   // private
-        This,                      // $this
         New,                       // new
         Instanceof,                // instanceof
         Extends,                   // extends
@@ -70,6 +70,7 @@ namespace lexer
         Parent,                    // parent
 
         // key variables
+        This,                      // $this
         GLOBALS,                   // $GLOBALS
         SERVER,                    // $_SERVER
         REQUEST,                   // $_REQUEST
@@ -82,7 +83,9 @@ namespace lexer
 
         // data types
         StringValueOneQuote,
-        StringValueTwoQuotes,
+        TwoQuoteStart,              // "
+        TwoQuoteEnd,                // "
+        StringValueInTwoQuotes,     // ...s
         IntValue,
         FloatValue,
         True,
@@ -165,7 +168,8 @@ namespace lexer
     {
         "Identifier",
         "$",                       // DollarIdentifier
-        "${}",                     // DollarIdentifierInString
+        "${",                      // DollarIdStartString
+        "}",                       // DollarIdEndString
 
         // key words
         "include",                 // Include
@@ -208,7 +212,6 @@ namespace lexer
         "public",                    // Public
         "protected",                 // Protected
         "private",                   // Private
-        "$this",                     // This
         "new",                       // New
         "instanceof",                // Instanceof
         "extends",                   // Extends
@@ -221,6 +224,7 @@ namespace lexer
         "parent",                    // Parent
 
         // key variables
+        "$this",                     // This
         "$GLOBALS",                   // GLOBALS
         "$_SERVER",                    // SERVER
         "$_REQUEST",                   // REQUEST
@@ -233,7 +237,9 @@ namespace lexer
 
         // data types
         "StringValueOneQuote",
-        "StringValueTwoQuotes",
+        "TwoQuoteStart",
+        "TwoQuoteEnd",
+        "StringValueInTwoQuotes",
         "IntValue",
         "FloatValue",
         "true",

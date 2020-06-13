@@ -48,17 +48,19 @@ namespace lexer
         size_t row_pos;
         size_t column_pos;
         size_t symbol_table_index;
+        size_t lvl;
 
         InvalidToken() {}
 
         InvalidToken(std::string message, std::string symbol, size_t row, size_t col,
-                size_t symbol_table_index = SYMBOL_TABLE_MAX)
+                size_t symbol_table_index = SYMBOL_TABLE_MAX, size_t lvl = 0)
         {
             this->error_message = message;
             this->error_symbol = symbol;
             this->row_pos = row;
             this->column_pos = col;
             this->symbol_table_index = symbol_table_index;
+            this->lvl = 1;
         }
     };
 }

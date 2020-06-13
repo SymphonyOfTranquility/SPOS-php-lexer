@@ -30,26 +30,33 @@ namespace lexer
         std::vector<InvalidToken> invalid_tokens;
         CurrentLineState state;
 
+        void handle_tag_error(TokenType type);
         void get_dfa_token();
 
         void get_single_line_comment(TokenType type);
         void get_multiline_comment();
         void get_one_quote_string();
+        void handle_special_for_two_quotes();
+        void init_two_quote_string();
+        void get_next_token_in_two_quote(bool &is_string, bool const need_brace);
+        void handle_tokens_in_two_quote();
+        void get_two_quote_string();
         size_t in_key_words(std::string const &word) const;
         size_t in_key_variables(std::string const &word) const;
         void handle_multiline_mode();
-        void handle_number();
+        void handle_number(bool &is_not_for_two_quotes);
         void handle_comment();
         void handle_word();
-        void handle_single_quote_string();
-        void handle_variable();
+        void handle_one_quote_string();
+        void handle_two_quote_string();
+        void handle_variable(bool &is_not_for_two_quotes);
         void handle_punctuation();
         void get_next_token();
 
     public:
         Lexer();
         bool get_all_tokens(std::string const &path_to_file);
-        void output() const;
+        void output(std::string const &path_to_file) const;
     };
 }
 

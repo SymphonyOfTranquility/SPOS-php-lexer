@@ -1,28 +1,26 @@
-=!===<<=<<<--=>>>=<<<=!=<><>11@1=+!++=+==
-189[]2[23{ #}2 32][3924
 <?php
-$roeiwrjgo po pqe[r] wepr[ e]t[ wer[pre]qwrp[
-$$$POROKOFof er prkg
-$$$;;;;e;;;fe;;fer;fr;ewg;$fkgo;$tjgkfdl,;;
-$
-fpo rtig jpowepocrp $=<<$-23
+
+//comment 1
+/*
+multi
+huge and big comment*/
+
+class A {
+    public $r;
+    function __construct()
+    {
+        $this->r = 0;       #other comment
+    }
+}
+
+$a = 10;
+$b = "a";
+
+$d = new A();
+echo "$$b ${$b} aaaaaa $d->c";
+
+$GLOBALS['a'] <<= 10;
+
+echo "a = " . $a . "b = $$b " . $d->c;
+
 ?>
-1203.23203
-23-2/1=230-or
-ewojfi
-i90'3ir904r094ufiopof-d'0'fi'0--r40-ro04ir04_2-302-03-20-302-03-203o3ri904tgetu8h
-239..230
--230.
-$_SESSION
-$_GET
-#odkeoefkor
-/*doefkoe
-ef
-w //// we0roiurgyhf
-rer
-er
-g*/ lpl //ew[flpergl
-'er
-pe-9489t5 4ygu8v9c0f--
-or
- dsfdgf sfsg ds gf f' /*oeiroeiroi*/ lekoeirg 0239485-12094923ir _ . 0349r

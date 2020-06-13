@@ -77,7 +77,6 @@ namespace lexer
         std::sort(dfa_tokens_list.begin(), dfa_tokens_list.end());
 
         init_dfs(root, dfa_tokens_list, 0);
-        std::cout << dfa_tokens_list.size();
     }
 
 
