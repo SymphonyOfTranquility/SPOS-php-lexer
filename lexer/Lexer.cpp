@@ -96,6 +96,18 @@ namespace lexer
         return SYMBOL_TABLE_MAX;
     }
 
+    size_t Lexer::in_key_variables(const std::string &word) const
+    {
+        auto start = static_cast<size_t>(TokenType::GLOBALS);
+        auto end = static_cast<size_t>(TokenType::SESSION);
+        for (size_t i = start;i <= end; ++i)
+        {
+            if (word == TokenValue[i])
+                return i;
+        }
+        return SYMBOL_TABLE_MAX;
+    }
+
     void Lexer::handle_multiline_mode()
     {
         if (state.token.type == TokenType::MultiLineComment)
@@ -227,6 +239,79 @@ namespace lexer
         get_one_quote_string();
     }
 
+    void Lexer::handle_variable()
+    {
+        size_t first_in = state.column;
+        char c;
+        std::string word;
+        do
+        {
+            c = state.line[state.column];
+            if (!is_dollar(c))
+                break;
+            word += c;
+            state.column += 1;
+        }
+        while (state.column < state.line.length());
+
+        if (state.column == state.line.length() || !is_symbol(state.line[state.column]))
+        {
+            while (state.column < state.line.length())
+            {
+                c = state.line[state.column];
+                if (is_symbol(c) || is_correct_after_number(c) && !is_dollar(state.line[state.column - 1])
+                    || is_dollar(c))
+                    break;
+                word += c;
+                state.column += 1;
+            }
+            size_t index = symbol_table.size();
+            symbol_table.push_back(word);
+            invalid_tokens.emplace_back("Invalid symbol for variable name ", word, state.row, first_in, index);
+            state.token.set_invalid();
+            return;
+        }
+        do
+        {
+            c = state.line[state.column];
+            if (!is_word(c))
+                break;
+            word += c;
+            state.column += 1;
+        }
+        while (state.column < state.line.length());
+
+        size_t pos = in_key_variables(word);
+        if (pos != SYMBOL_TABLE_MAX)
+            tokens.emplace_back(static_cast<TokenType>(pos), state.row, first_in);
+        else
+        {
+            size_t index = symbol_table.size();
+            symbol_table.push_back(word);
+            tokens.emplace_back(TokenType::DollarIdentifier, state.row, first_in, index);
+        }
+        state.token.set_invalid();
+    }
+
+    void Lexer::handle_punctuation()
+    {
+        std::string word;
+        word += state.line[state.column];
+        auto start = static_cast<size_t>(TokenType::Comma);
+        auto end = static_cast<size_t>(TokenType::RBrace);
+        size_t pos = SYMBOL_TABLE_MAX;
+        for (size_t i = start;i <= end; ++i)
+        {
+            if (word == TokenValue[i])
+            {
+                pos = i;
+                break;
+            }
+        }
+        tokens.emplace_back(static_cast<TokenType>(pos), state.row, state.column);
+        state.column += 1;
+    }
+
     void Lexer::get_next_token()
     {
         if (state.token.type != TokenType::INVALID)
@@ -263,14 +348,19 @@ namespace lexer
             handle_single_quote_string();
             return;
         }
-        /*if (is_dollar(state.line[state.column]))
+        if (is_dollar(state.line[state.column]))
         {
             handle_variable();
             return;
-        }*/
+        }
         if (is_operation(state.line[state.column]))
         {
             get_dfa_token();
+            return;
+        }
+        if (is_punctuation(state.line[state.column]))
+        {
+            handle_punctuation();
             return;
         }
     }
@@ -280,13 +370,13 @@ namespace lexer
         DetFiniteAutomaton::init_dfa_states();
     }
 
-    void Lexer::get_all_tokens(std::string const &path_to_file)
+    bool Lexer::get_all_tokens(std::string const &path_to_file)
     {
         std::ifstream ifs(path_to_file);
         if (!ifs)
         {
-            std::cerr << "\tFile doesn't exists!";
-            return;
+            std::cerr << "\tFile doesn't exists!\n";
+            return false;
         }
         while (!ifs.eof())
         {
@@ -298,6 +388,7 @@ namespace lexer
             }
             state.row += 1;
         }
+        return true;
     }
 
     void Lexer::output() const
@@ -306,7 +397,8 @@ namespace lexer
         for (int i = 0;i < tokens.size(); ++i)
         {
             std::cout << std::left << std::setw(28) << TokenValue[static_cast<size_t>(tokens[i].type)];
-            std::cout << tokens[i].row_pos << "|" << std::left << std::setw(8) << tokens[i].column_pos;
+            std::cout << std::right <<std::setw(2) << tokens[i].row_pos << "|";
+            std::cout << std::left << std::setw(8) << tokens[i].column_pos;
 
             //std::cout.width(15);
             if (tokens[i].symbol_table_index != SYMBOL_TABLE_MAX)
@@ -317,7 +409,8 @@ namespace lexer
         std::cout << "\n---------------------Invalid tokens---------------------\n";
         for (int i = 0;i < invalid_tokens.size(); ++i)
         {
-            std::cout << invalid_tokens[i].error_message << " in " << invalid_tokens[i].row_pos << "|";
+            std::cout << std::left << std::setw(40) << invalid_tokens[i].error_message << " in ";
+            std::cout << std::right <<std::setw(2) << invalid_tokens[i].row_pos << "|";
             std::cout << std::left << std::setw(8) << invalid_tokens[i].column_pos;
             std::cout << invalid_tokens[i].symbol_table_index << ") " << invalid_tokens[i].error_symbol << '\n';
         }
