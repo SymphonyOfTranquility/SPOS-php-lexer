@@ -1,5 +1,3 @@
-<?php
-
 //comment 1
 /*
 multi
@@ -17,10 +15,10 @@ $a = 10;
 $b = "a";
 
 $d = new A();
-echo "$$b ${$b} aaaaaa $d->c";
+echo "b ${$b} aaaaaa d->c}
+we {$Qweqwe kosfdjifsuiicf
+";
 
-$GLOBALS['a'] <<= 10;
+$GLOBALS['a'] <<= 10
 
 echo "a = " . $a . "b = $$b " . $d->c;
-
-?>

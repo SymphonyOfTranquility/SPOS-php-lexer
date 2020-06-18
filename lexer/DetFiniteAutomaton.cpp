@@ -60,7 +60,7 @@ namespace lexer
     {
         if (code.length() <= pos)
             return { state.type, pos };
-
+// ! -> = -> =
         for (int i = 0;i < state.next_state.size(); ++i)
             if (state.next_state[i].c == code[pos])
                 return check_dfs(state.next_state[i], code, pos+1);

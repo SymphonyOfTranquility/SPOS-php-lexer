@@ -12,37 +12,23 @@
 
 namespace lexer
 {
-    void Lexer::handle_tag_error(TokenType type)
+    void Lexer::handle_tag_error(TokenType type, size_t end_pos)
     {
-        size_t next_pos = state.column;
         std::string word;
-        while (next_pos < state.line.length() && !is_whitespace(state.line[next_pos]))
+        while (state.column < end_pos)
         {
-            word += state.line[next_pos];
-            next_pos += 1;
+            word += state.line[state.column];
+            state.column += 1;
         }
-        invalid_tokens.emplace_back("Invalid token <?php", "", state.row, state.column, symbol_table.size());
-        symbol_table.emplace_back(word);
-        state.column = next_pos;
+        invalid_tokens.emplace_back("Invalid token ", word, state.row, state.column);
     }
     void Lexer::get_dfa_token()
     {
         std::pair<TokenType, size_t> token_from_dfa = DetFiniteAutomaton::check_value(state.line, state.column);
         if (token_from_dfa.first == TokenType::INVALID)
-        {
-            handle_tag_error(token_from_dfa.first);
-        }
+            handle_tag_error(token_from_dfa.first, token_from_dfa.second);
         else
         {
-            if (token_from_dfa.first == TokenType::OpenTag)
-            {
-                size_t next_id = token_from_dfa.second;
-                if (next_id < state.line.length() && !is_tag_after_punctuation(state.line[next_id]))
-                {
-                    handle_tag_error(token_from_dfa.first);
-                    return;
-                }
-            }
             tokens.emplace_back(token_from_dfa.first, state.row, state.column);
             state.column = token_from_dfa.second;
         }
@@ -101,107 +87,29 @@ namespace lexer
         }
     }
 
-    void Lexer::handle_special_for_two_quotes()
-    {
-        if (is_bracket(state.line[state.column]))
-        {
-            if (state.line[state.column] == '[')
-                tokens.emplace_back(TokenType::LBracket, state.row, state.column);
-            else
-                tokens.emplace_back(TokenType::RBracket, state.row, state.column);
-            state.column += 1;
-        }
-        else
-        {
-            tokens.emplace_back(TokenType::VarReference, state.row, state.column);
-            state.column += 2;
-        }
-    }
-
-    void Lexer::get_next_token_in_two_quote(bool &is_string, bool const need_brace)
-    {
-        size_t prev_pos = state.column;
-        while (need_brace && state.column < state.line.length() && is_whitespace(state.line[state.column]))
-            state.column += 1;
-        if (state.column == state.line.length())
-        {
-            if (!need_brace)
-                state.column = prev_pos;
-            return;
-        }
-
-        char c = state.line[state.column];
-        if (is_dollar(c))
-        {
-            handle_variable(is_string);
-            return;
-        }
-        if (is_word(c))
-        {
-            handle_word();
-            return;
-        }
-        if (is_number(c))
-        {
-            handle_number(is_string);
-            return;
-        }
-        if (is_bracket(c) || state.column + 1 < state.line.length() && is_arrow(c, state.line[state.column+1]))
-        {
-            handle_special_for_two_quotes();
-            return;
-        }
-        if (need_brace && is_close_brace(c))
-        {
-            tokens.emplace_back(TokenType::DollarIdEndString, state.row, state.column);
-            state.column += 1;
-        }
-        is_string = true;
-    }
-
     void Lexer::handle_tokens_in_two_quote()
     {
-        bool is_string = false;
-        bool need_brace = false;
-        if (state.line[state.column + 1] == '{')
+        bool is_in_string = true;
+        bool normal_end = false;
+
+        while (state.column < state.line.length() && is_in_string)
         {
-            need_brace = true;
-            tokens.emplace_back(TokenType::DollarIdStartString, state.row, state.column);
-            state.column += 1;
-            state.line[state.column] = '$';
+            get_next_token(is_in_string, normal_end);
         }
 
-        while (state.column < state.line.length() && !is_string)
-        {
-            get_next_token_in_two_quote(is_string, need_brace);
-        }
-
-        if (need_brace && tokens.back().type != TokenType::DollarIdEndString)
+        if (!normal_end)
         {
             if ( state.column < state.line.length())
             {
-                std::string word;
-                size_t first_in = state.column;
-                do
-                {
-                    if (is_close_brace(state.line[state.column]))
-                        break;
-                    word += state.line[state.column];
-                    state.column += 1;
-                }
-                while (state.column < state.line.length());
-                size_t index = symbol_table.size();
-                symbol_table.push_back(word);
-                invalid_tokens.emplace_back("Unresolved symbols ", word, state.row, first_in, index);
-                if (state.column >= state.line.length())
-                    invalid_tokens.emplace_back("Unclosed expression ${ need - '}'", "}", state.row, state.column - 1);
-                else
-                    tokens.emplace_back(TokenType::DollarIdEndString, state.row, state.column);
-                state.column += 1;
+                std::string symbol;
+                symbol += state.line[state.column];
+                invalid_tokens.emplace_back("Expected ", symbol, state.row, state.column);
             }
             else if (state.column >= state.line.length())
             {
-                invalid_tokens.emplace_back("Unclosed expression ${ need - '}'", "}", state.row, state.column - 1);
+                std::string symbol;
+                symbol += state.line.back();
+                invalid_tokens.emplace_back("Expected ", "}", state.row, state.column - 1);
             }
         }
     }
@@ -218,16 +126,18 @@ namespace lexer
         bool prev_is_slash;
         do
         {
-            prev_is_slash = c == '"';
+            prev_is_slash = c == '\\';
             c = state.line[state.column];
-            if (is_dollar(c) && !prev_is_slash && state.column+1 < state.line.length())
+            if ((c == '{') && !prev_is_slash && state.column+1 < state.line.length())
             {
                 c = state.line[state.column + 1];
-                if (is_word(c) || c == '{')
+                if (is_dollar(c))
                 {
                     tokens.push_back(state.token);
+                    tokens.emplace_back(TokenType::Concat, state.row, state.column);
                     state.token.set_invalid();
                     handle_tokens_in_two_quote();
+                    tokens.emplace_back(TokenType::Concat, state.row, state.column);
                     init_two_quote_string();
                     if (state.column >= state.line.length())
                         break;
@@ -243,7 +153,6 @@ namespace lexer
         {
             symbol_table[state.token.symbol_table_index].pop_back();
             tokens.push_back(state.token);
-            tokens.emplace_back(TokenType::TwoQuoteEnd, state.row, state.column-1);
             state.token.set_invalid();
         }
         else
@@ -287,15 +196,12 @@ namespace lexer
             get_two_quote_string();
     }
 
-    void Lexer::handle_number(bool &is_not_for_two_quotes)
+    void Lexer::handle_number()
     {
         char c = state.line[state.column];
         if (is_dot(c) && (state.column+1 >= state.line.length() || !is_number(state.line[state.column + 1])))
         {
-            if (is_not_for_two_quotes)
-                get_dfa_token();
-            else
-                is_not_for_two_quotes = true;
+            get_dfa_token();
             return;
         }
         size_t start_pos_number = state.column;
@@ -305,11 +211,6 @@ namespace lexer
         do
         {
             c = state.line[state.column];
-            if (!is_not_for_two_quotes && !is_number(c))
-            {
-                is_not_for_two_quotes = true;
-                break;
-            }
             if (!is_number(c) && !is_dot(c))
             {
                 is_correct = false;
@@ -341,17 +242,10 @@ namespace lexer
         }
         else
         {
-            size_t first_in_error = state.column;
-            while (state.column < state.line.length())
-            {
-                c = state.line[state.column];
-                if (is_correct_after_number(c))
-                    break;
-                num_value += c;
-                state.column += 1;
-            }
+            num_value += state.line[state.column];
             symbol_table.push_back(num_value);
-            invalid_tokens.emplace_back("Unresolved symbol", num_value, state.row, first_in_error, index);
+            invalid_tokens.emplace_back("Unresolved symbol", num_value, state.row, state.column);
+            state.column += 1;
         }
     }
 
@@ -417,7 +311,6 @@ namespace lexer
 
     void Lexer::handle_two_quote_string()
     {
-        tokens.emplace_back(TokenType::TwoQuoteStart, state.row, state.column);
         state.column += 1;
         if (state.column < state.line.length())
         {
@@ -431,10 +324,10 @@ namespace lexer
         }
     }
 
-    void Lexer::handle_variable(bool &is_not_for_two_quote)
+    void Lexer::handle_variable()
     {
-        size_t first_in = state.column;
         char c;
+        size_t first_in = state.column;
         std::string word;
         do
         {
@@ -448,26 +341,11 @@ namespace lexer
 
         if (state.column == state.line.length() || !is_symbol(state.line[state.column]))
         {
-            if (!is_not_for_two_quote)
-            {
-                is_not_for_two_quote = true;
-                state.column = first_in;
-                return;
-            }
-            while (state.column < state.line.length())
-            {
-                c = state.line[state.column];
-                if (is_symbol(c) || is_correct_after_number(c) && !is_dollar(state.line[state.column - 1])
-                    || is_dollar(c))
-                    break;
-                word += c;
-                state.column += 1;
-            }
-            size_t index = symbol_table.size();
-            symbol_table.push_back(word);
-            invalid_tokens.emplace_back("Invalid symbol for var name ", word, state.row, first_in, index);
+            invalid_tokens.emplace_back("Invalid symbol for var name ", word, state.row, state.column);
+            state.column += 1;
             return;
         }
+
         do
         {
             c = state.line[state.column];
@@ -508,7 +386,7 @@ namespace lexer
         state.column += 1;
     }
 
-    void Lexer::get_next_token()
+    void Lexer::get_next_token(bool &is_in_string, bool &normal_end)
     {
         if (state.token.type != TokenType::INVALID)
         {
@@ -516,16 +394,33 @@ namespace lexer
             return;
         }
 
+
         while (state.column < state.line.length() && is_whitespace(state.line[state.column]))
             state.column += 1;
 
         if (state.line.length() <= state.column)
             return;
+        if (is_in_string)
+        {
+            if (state.line[state.column] == '"')
+            {
+                is_in_string = false;
+                normal_end = false;
+                return;
+            }
+            if (state.line[state.column] == '}')
+            {
+                tokens.emplace_back(TokenType::RBrace, state.row, state.column);
+                state.column += 1;
+                is_in_string = false;
+                normal_end = true;
+                return;
+            }
+        }
         char current_symbol = state.line[state.column];
         if (is_number(current_symbol) || is_dot(current_symbol))
         {
-            bool is_not_quotes = true;
-            handle_number(is_not_quotes);
+            handle_number();
             return;
         }
         if (state.column+1 < state.line.length() &&
@@ -552,8 +447,7 @@ namespace lexer
         }
         if (is_dollar(current_symbol))
         {
-            bool is_not_quotes = true;
-            handle_variable(is_not_quotes);
+            handle_variable();
             return;
         }
         if (is_operation(current_symbol))
@@ -566,9 +460,9 @@ namespace lexer
             handle_punctuation();
             return;
         }
-        symbol_table.emplace_back("");
-        symbol_table.back() += state.line[state.column];
-        invalid_tokens.emplace_back("Invalid symbol", symbol_table.back(), state.row, state.column, symbol_table.size()-1);
+        std::string symbol;
+        symbol += state.line[state.column];
+        invalid_tokens.emplace_back("Invalid symbol", symbol, state.row, state.column);
         state.column += 1;
     }
 
@@ -576,6 +470,7 @@ namespace lexer
     {
         DetFiniteAutomaton::init_dfa_states();
     }
+
 
     bool Lexer::get_all_tokens(std::string const &path_to_file)
     {
@@ -589,9 +484,10 @@ namespace lexer
         {
             std::getline(ifs, state.line);
             state.column = 0;
+            bool is_in_string = false, normal_end = true;
             while (state.column < state.line.length())
             {
-                get_next_token();
+                get_next_token(is_in_string, normal_end);
             }
             state.row += 1;
         }
@@ -599,19 +495,16 @@ namespace lexer
         {
             if (state.token.type == TokenType::StringValueInTwoQuotes)
                 invalid_tokens.emplace_back("End of two quote string not exists",
-                        symbol_table[state.token.symbol_table_index], state.row, state.column,
-                        state.token.symbol_table_index);
+                                            symbol_table.back(), state.row, state.column);
             else if (state.token.type == TokenType::StringValueOneQuote)
                 invalid_tokens.emplace_back("End of one quote string not exists",
-                                            symbol_table[state.token.symbol_table_index], state.row, state.column,
-                                            state.token.symbol_table_index);
+                                            symbol_table.back(), state.row, state.column);
             else if (state.token.type == TokenType::MultiLineComment)
                 invalid_tokens.emplace_back("End of multi line comment not exists",
-                                            symbol_table[state.token.symbol_table_index], state.row, state.column,
-                                            state.token.symbol_table_index);
+                                            symbol_table.back(), state.row, state.column);
             else
                 invalid_tokens.emplace_back("Unknown error occurred", "", state.row, state.column);
-
+            symbol_table.pop_back();
         }
         return true;
     }
@@ -643,19 +536,15 @@ namespace lexer
                 ofs << '\n';
         }
         ofs << "\n---------------------------Invalid tokens---------------------------\n";
-        ofs << std::left << std::setw(30) << "Error explanation";
         ofs << std::left << std::setw(2) << "|row" << "|";
         ofs << std::left << std::setw(8) << "col|";
-        ofs << std::left << "symbol table index and value\n";
-        ofs << "----------------------------------------------------------------------\n";
+        ofs << "Error explanation";
+        ofs << "\n--------------------------------------------------------------------\n";
         for (int i = 0;i < invalid_tokens.size(); ++i)
         {
-            ofs << std::left << std::setw(28) << invalid_tokens[i].error_message << " in ";
             ofs << std::right <<std::setw(2) << invalid_tokens[i].row_pos << "|";
             ofs << std::left << std::setw(8) << invalid_tokens[i].column_pos;
-            if (invalid_tokens[i].symbol_table_index != SYMBOL_TABLE_MAX)
-                ofs << std::left << invalid_tokens[i].symbol_table_index << ") |" <<
-                            symbol_table[invalid_tokens[i].symbol_table_index] << "|\n";
+            ofs << invalid_tokens[i].error_message + " |" + invalid_tokens[i].error_symbol + "|\n";
         }
         ofs << "\n---------------------------Symbol table---------------------------\n";
         for (int i = 0;i < symbol_table.size(); ++i)

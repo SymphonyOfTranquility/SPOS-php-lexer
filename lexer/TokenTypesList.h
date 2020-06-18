@@ -142,9 +142,6 @@ namespace lexer
         ArrayKey,                   // =>
         VarReference,               // ->
         DoubleColon,                // ::
-        //tags
-        OpenTag,                   // <?php
-        CloseTag,                  // ?>
         // comments
         SingleLineSlashComment,     // //
         SingleLineHashTagComment,   // #
@@ -297,9 +294,6 @@ namespace lexer
         "=>",                       // ArrayKey
         "->",                       // VarReference,
         "::",                       // DoubleColon
-        // tags
-        "<?php",                   // OpenTag
-        "?>",                      // CloseTag
         // comments
         "//",                       // SingleLineSlashComment
         "#",                        // SingleLineHashTagComment
