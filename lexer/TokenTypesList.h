@@ -13,8 +13,6 @@ namespace lexer
     {
         Identifier,
         DollarIdentifier,          // $
-        DollarIdStartString,       // ${
-        DollarIdEndString,         // }
 
         // key words
         Include,                   // include
@@ -83,9 +81,7 @@ namespace lexer
 
         // data types
         StringValueOneQuote,
-        TwoQuoteStart,              // "
-        TwoQuoteEnd,                // "
-        StringValueInTwoQuotes,     // ...s
+        StringValueInTwoQuotes,
         IntValue,
         FloatValue,
         True,
@@ -165,8 +161,6 @@ namespace lexer
     {
         "Identifier",
         "$",                       // DollarIdentifier
-        "${",                      // DollarIdStartString
-        "}",                       // DollarIdEndString
 
         // key words
         "include",                 // Include
@@ -234,8 +228,6 @@ namespace lexer
 
         // data types
         "StringValueOneQuote",
-        "TwoQuoteStart",
-        "TwoQuoteEnd",
         "StringValueInTwoQuotes",
         "IntValue",
         "FloatValue",

@@ -243,7 +243,6 @@ namespace lexer
         else
         {
             num_value += state.line[state.column];
-            symbol_table.push_back(num_value);
             invalid_tokens.emplace_back("Unresolved symbol", num_value, state.row, state.column);
             state.column += 1;
         }
@@ -521,19 +520,15 @@ namespace lexer
         ofs << "-----------------------------------------------------------------\n";
         for (int i = 0;i < tokens.size(); ++i)
         {
-            if (tokens[i].type == TokenType::DollarIdStartString)
-                ofs << '\n';
             ofs << std::left << std::setw(22) << TokenValue[static_cast<size_t>(tokens[i].type)];
             ofs << std::right <<std::setw(4) << tokens[i].row_pos << "|";
             ofs << std::left << std::setw(6) << tokens[i].column_pos;
 
-            //std::cout.width(15);
+
             if (tokens[i].symbol_table_index != SYMBOL_TABLE_MAX)
                 ofs << std::left << tokens[i].symbol_table_index << ") |"
                             << symbol_table[tokens[i].symbol_table_index] << "|";
             ofs << '\n';
-            if (tokens[i].type == TokenType::DollarIdEndString)
-                ofs << '\n';
         }
         ofs << "\n---------------------------Invalid tokens---------------------------\n";
         ofs << std::left << std::setw(2) << "|row" << "|";
